@@ -17,15 +17,21 @@ Parameters
 */
 const int ledPin = 13; // Onboard LED-Pin for testing
 
+/*
+DMX Settings
+*/
+#define DMX_SLAVE_CHANNELS 10
+DMX_Slave dmx_slave(DMX_SLAVE_CHANNELS); // Configure a DMX slave controller
+unsigned long lastFrameReceivedTime;
+const unsigned long dmxTimeoutMillis = 10000UL;
 
-DMXPARAM parameters;
+DMXPARAM parameters; //parameter class
 
 // Setup
 void setup()
 {
 
   delay(3000); // 3 second delay for boot recovery, and a moment of silence
-  Serial.begin(9600);
   /*
   Start LEDS, first one green, last one RED, to check length of array.
   */
@@ -50,16 +56,19 @@ void setup()
   delay(5000);
   Timer1.stop();
   Timer1.attachInterrupt(addEffectStep);
+  // Start DMX stuff
+  dmx_slave.enable();
+  // Set start address to 1, this is also the default setting
+  // You can change this address at any time during the program
+  dmx_slave.setStartAddress(1);
+  //
+  // Register on frame complete event to determine signal timeout
+  //
+  dmx_slave.onReceiveComplete(OnFrameReceiveComplete);
 
   int *dmx_input;
   dmx_input = fake_dmx();
-  Serial.print("Result: ");
-  for (int i = 0; i < 10; i++)
-  {
-    Serial.print(*(dmx_input + i));
-    Serial.print(" - ");
-  }
-  Serial.print("\n");
+
   parameters.setDMX(dmx_input);
   clearEffects(parameters, leds, NUM_LEDS);
   delay(5000);
@@ -69,10 +78,18 @@ void loop()
 {
   FastLED.setBrightness(parameters.getBrightness());
 
-  loadChase(parameters, leds, NUM_LEDS);
+  loadLoop(parameters, leds, NUM_LEDS);
 
   FastLED.show();
   readSpeed();
+
+  // Get current time
+  unsigned long now = millis();
+
+  // If we didn't receive a DMX frame within the timeout period
+  // clear all dmx channels
+  if (now - lastFrameReceivedTime > dmxTimeoutMillis)
+    dmx_slave.getBuffer().clear();
 }
 
 // Interrupt function for adding effect step
@@ -104,3 +121,17 @@ void readSpeed(void)
   }
 }
 
+void OnFrameReceiveComplete(unsigned short channelsReceived)
+{
+  if (channelsReceived == DMX_SLAVE_CHANNELS)
+  {
+    // All slave channels have been received
+  }
+  else
+  {
+    digitalWrite(ledPin, HIGH);
+  }
+
+  // Update receive time to determine signal timeout
+  lastFrameReceivedTime = millis();
+}

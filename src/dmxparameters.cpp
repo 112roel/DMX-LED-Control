@@ -30,10 +30,6 @@ void DMXPARAM::addEffectStep(int &NUM_LEDS)
     }
     effectStep = (effectStep + 1) % NUM_LEDS;
     
-    Serial.print("\nEffectstep: ");
-    Serial.print(effectStep);
-    Serial.print(effectFull);
-    Serial.print("\n");
 }
 
 /* Function for setting values*/
