@@ -21,7 +21,7 @@ int * fake_dmx(void){
     }
     r[7] = 150; // effectspeed
     r[8] = 0; // effectselect
-    r[9] = 0; // empty
+    r[9] = 3; // spacing
 
     return r;
 }

@@ -69,7 +69,7 @@ void loop()
 {
   FastLED.setBrightness(parameters.getBrightness());
 
-  twinkle(parameters, leds, NUM_LEDS);
+  loadChase(parameters, leds, NUM_LEDS);
 
   FastLED.show();
   readSpeed();
@@ -81,7 +81,7 @@ void addEffectStep(void)
   parameters.addEffectStep(NUM_LEDS);
 }
 
-// Converts speed from 10 to 255 to linear speed 0 to 20 Hz
+// Converts speed from 10 to 255 to speed 0 to 20 Hz
 void readSpeed(void)
 {
 
